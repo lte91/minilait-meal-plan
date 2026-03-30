@@ -239,7 +239,7 @@ select.fi option{background:var(–surface2);}
 <span class="scale-lbl">Scale plan for</span>
 <div class="scale-row">
 <button class="sc-btn on" id="sc-a" onclick="setScale('a')">Person A</button>
-<button class="sc-btn on" id="sc-b" onclick="setScale('b')">Person B</button>
+<button class="sc-btn" id="sc-b" onclick="setScale('b')">Person B</button>
 <button class="sc-btn" id="sc-both" onclick="setScale('both')">Both</button>
 </div>
 <p class="sb-hint">Portions and macros scale to the selected profile. Click ✏️ on any meal or snack to edit it. Use + to add new ones.</p>
@@ -797,6 +797,7 @@ function chk(el) {
 window.addEventListener('load', () => {
  renderAll();
  calcProfile('a');
+ calcProfile('b');
 });
 </script>
 </body>
