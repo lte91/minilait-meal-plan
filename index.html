@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Plan Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300;1,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+ --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2a2a2a;
+ --border:#2e2e2e; --border-light:#3a3a3a;
+ --text:#f0ece4; --muted:#888880; --dim:#555550;
+ --green:#c8f060; --blue:#60c8f0; --orange:#ff7f50; --yellow:#f0c060;
+ --r:12px; --r-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);font-family:'Instrument Sans',sans-serif;color:var(--text);min-height:100vh;line-height:1.5;}
+/* HEADER */
+.hdr{border-bottom:1px solid var(–border);padding:1.2rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(15,15,15,.96);backdrop-filter:blur(12px);z-index:200;}
+.logo{font-family:‘Fraunces’,serif;font-size:1.25rem;font-weight:600;letter-spacing:-.02em;}
+.logo em{color:var(–green);font-style:italic;}
+.hdr-right{display:flex;gap:.6rem;align-items:center;}
+.badge{font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–muted);background:var(–surface2);border:1px solid var(–border);padding:.28rem .75rem;border-radius:2rem;}
+/* LAYOUT */
+.app{display:grid;grid-template-columns:290px 1fr;min-height:calc(100vh - 57px);}
+@media(max-width:860px){.app{grid-template-columns:1fr;}}
+/* SIDEBAR */
+.sidebar{border-right:1px solid var(–border);padding:1.4rem;overflow-y:auto;position:sticky;top:57px;height:calc(100vh - 57px);}
+@media(max-width:860px){.sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(–border);}}
+.sb-title{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–muted);margin-bottom:1rem;}
+.profile-tabs{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:1.3rem;}
+.ptab{background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.55rem;font-family:‘Instrument Sans’,sans-serif;font-size:.75rem;font-weight:600;color:var(–muted);cursor:pointer;text-align:center;transition:all .2s;}
+.ptab:hover{color:var(–text);}
+.ptab.a-on{background:rgba(200,240,96,.1);border-color:var(–green);color:var(–green);}
+.ptab.b-on{background:rgba(96,200,240,.1);border-color:var(–blue);color:var(–blue);}
+.fl{margin-bottom:1rem;}
+.fl label{display:block;font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–muted);margin-bottom:.35rem;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
+input.fi,select.fi{width:100%;background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.5rem .65rem;font-family:‘Instrument Sans’,sans-serif;font-size:.8rem;color:var(–text);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+input.fi:focus,select.fi:focus{border-color:var(–border-light);}
+input.fi.ca:focus{border-color:var(–green);}
+input.fi.cb:focus{border-color:var(–blue);}
+select.fi option{background:var(–surface2);}
+.calc-btn{width:100%;padding:.7rem;border:none;border-radius:var(–r-sm);font-family:‘Instrument Sans’,sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:.5rem;}
+.calc-a{background:var(–green);color:#0f0f0f;}
+.calc-a:hover{background:#d4f070;}
+.calc-b{background:var(–blue);color:#0f0f0f;}
+.calc-b:hover{background:#70d0f4;}
+.result-card{background:var(–surface2);border:1px solid var(–border);border-radius:var(–r);padding:.9rem;margin-top:.8rem;display:none;}
+.result-card.on{display:block;}
+.rc-name{font-family:‘Fraunces’,serif;font-size:.95rem;font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;gap:.45rem;}
+.rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
+.rc-chip{background:var(–surface);border-radius:var(–r-sm);padding:.45rem .5rem;text-align:center;}
+.rc-val{font-family:‘Fraunces’,serif;font-size:1.15rem;font-weight:600;line-height:1;}
+.rc-lbl{font-size:.6rem;color:var(–muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.15rem;}
+.divider{border:none;border-top:1px solid var(–border);margin:1.1rem 0;}
+.scale-lbl{font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–muted);margin-bottom:.55rem;display:block;}
+.scale-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;}
+.sc-btn{background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.42rem .3rem;font-size:.7rem;font-weight:600;color:var(–muted);cursor:pointer;text-align:center;transition:all .2s;}
+.sc-btn:hover{color:var(–text);}
+.sc-btn.on{background:rgba(200,240,96,.1);border-color:var(–green);color:var(–green);}
+.sb-hint{font-size:.68rem;color:var(–dim);line-height:1.6;margin-top:.9rem;}
+/* MAIN */
+.main{padding:1.8rem;overflow-y:auto;}
+/* COMPARE BAR */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1.8rem;}
+.cc{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);padding:1.1rem;position:relative;overflow:hidden;}
+.cc.ca{border-top:3px solid var(–green);}
+.cc.cb{border-top:3px solid var(–blue);}
+.cc-name{font-family:‘Fraunces’,serif;font-size:1rem;font-weight:600;margin-bottom:.7rem;display:flex;align-items:center;gap:.45rem;}
+.cc-macros{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;}
+.cm{text-align:center;}
+.cm-val{font-family:‘Fraunces’,serif;font-size:1.2rem;font-weight:600;line-height:1;}
+.cm-lbl{font-size:.58rem;color:var(–muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem;}
+/* DAY TABS */
+.day-tabs{display:flex;gap:.3rem;overflow-x:auto;margin-bottom:1.4rem;scrollbar-width:none;padding-bottom:2px;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.dt{flex-shrink:0;background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.45rem .95rem;font-size:.75rem;font-weight:600;color:var(–muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.dt:hover{color:var(–text);}
+.dt.on{background:rgba(200,240,96,.1);border-color:var(–green);color:var(–green);}
+.dt.groc.on{background:rgba(255,127,80,.1);border-color:var(–orange);color:var(–orange);}
+/* DAY PANEL */
+.day-panel{display:none;}
+.day-panel.on{display:block;}
+/* SECTION SUBHEADER */
+.sub-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+.sub-title{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–muted);}
+.add-btn{display:flex;align-items:center;gap:.35rem;background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.38rem .75rem;font-size:.72rem;font-weight:600;color:var(–muted);cursor:pointer;transition:all .2s;}
+.add-btn:hover{border-color:var(–green);color:var(–green);}
+.add-btn svg{flex-shrink:0;}
+/* MEAL CARD */
+.meals-list{display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.4rem;}
+.meal-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;transition:border-color .2s;}
+.meal-card:hover{border-color:var(–border-light);}
+.mc-top{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.1rem;}
+.mc-emoji{font-size:1.2rem;width:38px;height:38px;background:var(–surface2);border-radius:var(–r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:text;}
+.mc-info{flex:1;min-width:0;}
+.mc-type{font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–dim);margin-bottom:.15rem;}
+.mc-name{font-family:‘Fraunces’,serif;font-size:.98rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc-right{flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;}
+.mc-kcal{font-family:‘Fraunces’,serif;font-size:.95rem;font-weight:600;color:var(–blue);}
+.mc-time{font-size:.65rem;color:var(–dim);}
+.mc-actions{display:flex;gap:.3rem;}
+.icon-btn{background:none;border:1px solid var(–border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(–muted);transition:all .15s;flex-shrink:0;}
+.icon-btn:hover{border-color:var(–border-light);color:var(–text);}
+.icon-btn.del:hover{border-color:#ff5555;color:#ff5555;}
+.mc-macros{display:flex;gap:.9rem;padding:0 1.1rem .75rem;}
+.mm{font-size:.7rem;color:var(–muted);}
+.mm strong{font-weight:600;}
+.mm.p strong{color:var(–green);}
+.mm.c strong{color:var(–yellow);}
+.mm.f strong{color:var(–orange);}
+.expand-btn{width:calc(100% - 2.2rem);margin:0 1.1rem .9rem;background:none;border:1px solid var(–border);border-radius:var(–r-sm);padding:.4rem .85rem;font-family:‘Instrument Sans’,sans-serif;font-size:.72rem;font-weight:500;color:var(–muted);cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:all .2s;}
+.expand-btn:hover{border-color:var(–border-light);color:var(–text);background:var(–surface2);}
+.expand-btn .arr{transition:transform .2s;}
+.expand-btn.open .arr{transform:rotate(180deg);}
+.ingr-panel{display:none;padding:0 1.1rem .9rem;font-size:.76rem;color:var(–muted);line-height:1.85;border-top:1px solid var(–border);margin:0 1.1rem;padding-top:.75rem;}
+.ingr-panel.open{display:block;}
+.ingr-panel ul{list-style:none;}
+.ingr-panel li::before{content:”·”;color:var(–green);margin-right:.45rem;font-weight:bold;}
+.ingr-panel .note{margin-top:.5rem;font-size:.72rem;color:var(–dim);font-style:italic;}
+/* SNACK CARDS */
+.snacks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1.4rem;}
+@media(max-width:680px){.snacks-grid{grid-template-columns:1fr;}}
+.snack-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);padding:.85rem .95rem;transition:border-color .2s;position:relative;}
+.snack-card:hover{border-color:var(–border-light);}
+.snack-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.3rem;}
+.snack-num{font-size:.62rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–green);}
+.snack-actions{display:flex;gap:.25rem;flex-shrink:0;}
+.snack-name{font-family:‘Fraunces’,serif;font-size:.88rem;font-weight:600;margin-bottom:.35rem;}
+.snack-desc{font-size:.7rem;color:var(–muted);line-height:1.5;}
+.snack-kcal{font-size:.68rem;color:var(–blue);font-weight:600;margin-top:.3rem;}
+/* DAY TOTALS */
+.totals-card{background:var(–surface2);border:1px solid var(–border);border-radius:var(–r);padding:1rem 1.1rem;margin-bottom:1.4rem;}
+.tc-hdr{font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–dim);margin-bottom:.65rem;}
+.tc-row{display:flex;gap:1.4rem;flex-wrap:wrap;margin-bottom:.8rem;}
+.tci{}.tci-val{font-family:‘Fraunces’,serif;font-size:1.1rem;font-weight:600;line-height:1;}
+.tci-lbl{font-size:.6rem;color:var(–muted);text-transform:uppercase;letter-spacing:.06em;}
+.cb-row{display:flex;align-items:center;gap:.55rem;margin-bottom:.3rem;}
+.cb-lbl{font-size:.65rem;color:var(–muted);width:58px;flex-shrink:0;}
+.cb-track{flex:1;height:4px;background:var(–surface);border-radius:3px;overflow:hidden;}
+.cb-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+.cb-pct{font-size:.62rem;color:var(–dim);width:32px;text-align:right;flex-shrink:0;}
+/* DISCLAIMER */
+.disclaimer{background:rgba(255,127,80,.07);border:1px solid rgba(255,127,80,.22);border-radius:var(–r);padding:.85rem 1.1rem;font-size:.76rem;color:var(–muted);margin-bottom:1.8rem;line-height:1.6;}
+.disclaimer strong{color:var(–orange);}
+/* GROCERY */
+.groc-panel{display:none;}
+.groc-panel.on{display:block;}
+.groc-note{background:rgba(200,240,96,.06);border:1px solid rgba(200,240,96,.18);border-radius:var(–r);padding:.85rem 1.1rem;font-size:.78rem;color:var(–muted);margin-bottom:1.3rem;line-height:1.6;}
+.groc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+@media(max-width:620px){.groc-grid{grid-template-columns:1fr;}}
+.groc-sec{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);padding:1.05rem;}
+.groc-sec-title{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–muted);margin-bottom:.75rem;padding-bottom:.55rem;border-bottom:1px solid var(–border);display:flex;align-items:center;gap:.4rem;}
+.gi{display:flex;align-items:flex-start;gap:.45rem;padding:.28rem 0;border-bottom:1px solid var(–border);font-size:.76rem;color:var(–muted);cursor:pointer;transition:color .15s;}
+.gi:last-child{border-bottom:none;}
+.gi:hover{color:var(–text);}
+.gck{width:14px;height:14px;border:1.5px solid var(–border-light);border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:.52rem;transition:all .15s;}
+.gi.done .gck{background:var(–green);border-color:var(–green);color:#000;}
+.gi.done .gtxt{text-decoration:line-through;opacity:.4;}
+.gtxt{flex:1;line-height:1.4;}
+.gq{font-weight:600;color:var(–text);margin-right:.18rem;}
+/* ══ MODAL ══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:1.5rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.4rem;border-bottom:1px solid var(–border);}
+.modal-title{font-family:‘Fraunces’,serif;font-size:1.1rem;font-weight:600;}
+.modal-close{background:none;border:1px solid var(–border);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(–muted);font-size:1rem;transition:all .15s;}
+.modal-close:hover{color:var(–text);border-color:var(–border-light);}
+.modal-body{padding:1.4rem;}
+.mf{margin-bottom:1.1rem;}
+.mf label{display:block;font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(–muted);margin-bottom:.38rem;}
+.mf input,.mf select,.mf textarea{width:100%;background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–r-sm);padding:.55rem .7rem;font-family:‘Instrument Sans’,sans-serif;font-size:.82rem;color:var(–text);outline:none;transition:border-color .2s;resize:vertical;}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(–green);}
+.mf textarea{min-height:80px;line-height:1.5;}
+.mf-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.mf-row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.6rem;}
+.modal-footer{display:flex;gap:.6rem;padding:1.1rem 1.4rem;border-top:1px solid var(–border);}
+.modal-save{flex:1;padding:.65rem;background:var(–green);color:#0f0f0f;border:none;border-radius:var(–r-sm);font-family:‘Instrument Sans’,sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.modal-save:hover{background:#d4f070;}
+.modal-cancel{padding:.65rem 1.1rem;background:none;border:1.5px solid var(–border);border-radius:var(–r-sm);font-family:‘Instrument Sans’,sans-serif;font-size:.82rem;font-weight:600;color:var(–muted);cursor:pointer;transition:all .2s;}
+.modal-cancel:hover{color:var(–text);border-color:var(–border-light);}
+/* DOT markers */
+.dot-a{width:7px;height:7px;border-radius:50%;background:var(–green);flex-shrink:0;}
+.dot-b{width:7px;height:7px;border-radius:50%;background:var(–blue);flex-shrink:0;}
+/* EMPTY STATE */
+.empty{text-align:center;padding:2rem;color:var(–dim);font-size:.82rem;}
+/* FADE */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.fade{animation:fadeUp .3s ease both;}
+/* TAGS */
+.tag{display:inline-block;font-size:.6rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .55rem;border-radius:2rem;}
+.tag-a{background:rgba(200,240,96,.12);color:var(–green);}
+.tag-b{background:rgba(96,200,240,.12);color:var(–blue);}
+</style>
+</head>
+<body>
+<header class="hdr">
+<div class="logo">meal<em>plan</em> ·builder</div>
+<div class="hdr-right">
+<span class="badge">editable · 7-day</span>
+</div>
+</header>
+<div class="app">
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+<p class="sb-title">Profile Setup</p>
+<div class="profile-tabs">
+<button class="ptab a-on" onclick="switchProfile('a')">Person A</button>
+<button class="ptab" onclick="switchProfile('b')" id="ptab-b">Person B</button>
+</div>
+```
+<!-- FORM A -->
+<div id="form-a">
+<div class="fl"><label>Name</label><input class="fi ca" id="a-name" type="text" value="Anna" placeholder="Name"></div>
+<div class="fl"><label>Age &amp; Sex</label><div class="fr"><input class="fi ca" id="a-age" type="number" value="34" placeholder="Age"><select class="fi ca" id="a-sex"><option value="f" selected>Female</option><option value="m">Male</option></select></div></div>
+<div class="fl"><label>Height (cm) &amp; Weight (kg)</label><div class="fr"><input class="fi ca" id="a-height" type="number" value="160" placeholder="cm"><input class="fi ca" id="a-weight" type="number" value="72.7" placeholder="kg" step="0.1"></div></div>
+<div class="fl"><label>Activity Level</label><select class="fi ca" id="a-activity"><option value="1.2">Sedentary</option><option value="1.375">Light (1–3×/wk)</option><option value="1.55" selected>Moderate (3–5×/wk)</option><option value="1.725">Active (6–7×/wk)</option><option value="1.9">Very active</option></select></div>
+<div class="fl"><label>Goal</label><select class="fi ca" id="a-goal"><option value="cut" selected>Fat loss (−780 kcal)</option><option value="mild">Mild cut (−300 kcal)</option><option value="maintain">Maintain</option><option value="bulk">Muscle gain (+200)</option></select></div>
+<div class="fl"><label>Protein multiplier</label><select class="fi ca" id="a-pmult"><option value="1.6">1.6 g/kg</option><option value="2.0" selected>2.0 g/kg</option><option value="2.4">2.4 g/kg</option></select></div>
+<button class="calc-btn calc-a" onclick="calcProfile('a')">Calculate for A</button>
+<div class="result-card" id="res-a"></div>
+</div>
+<!-- FORM B -->
+<div id="form-b" style="display:none">
+<div class="fl"><label>Name</label><input class="fi cb" id="b-name" type="text" value="Ben" placeholder="Name"></div>
+<div class="fl"><label>Age &amp; Sex</label><div class="fr"><input class="fi cb" id="b-age" type="number" value="36" placeholder="Age"><select class="fi cb" id="b-sex"><option value="f">Female</option><option value="m" selected>Male</option></select></div></div>
+<div class="fl"><label>Height (cm) &amp; Weight (kg)</label><div class="fr"><input class="fi cb" id="b-height" type="number" value="180" placeholder="cm"><input class="fi cb" id="b-weight" type="number" value="85" placeholder="kg" step="0.1"></div></div>
+<div class="fl"><label>Activity Level</label><select class="fi cb" id="b-activity"><option value="1.2">Sedentary</option><option value="1.375">Light (1–3×/wk)</option><option value="1.55" selected>Moderate (3–5×/wk)</option><option value="1.725">Active (6–7×/wk)</option><option value="1.9">Very active</option></select></div>
+<div class="fl"><label>Goal</label><select class="fi cb" id="b-goal"><option value="cut">Fat loss (−780 kcal)</option><option value="mild" selected>Mild cut (−300 kcal)</option><option value="maintain">Maintain</option><option value="bulk">Muscle gain (+200)</option></select></div>
+<div class="fl"><label>Protein multiplier</label><select class="fi cb" id="b-pmult"><option value="1.6">1.6 g/kg</option><option value="2.0" selected>2.0 g/kg</option><option value="2.4">2.4 g/kg</option></select></div>
+<button class="calc-btn calc-b" onclick="calcProfile('b')">Calculate for B</button>
+<div class="result-card" id="res-b"></div>
+</div>
+<hr class="divider">
+<span class="scale-lbl">Scale plan for</span>
+<div class="scale-row">
+<button class="sc-btn on" id="sc-a" onclick="setScale('a')">Person A</button>
+<button class="sc-btn" id="sc-b" onclick="setScale('b')">Person B</button>
+<button class="sc-btn" id="sc-both" onclick="setScale('both')">Both</button>
+</div>
+<p class="sb-hint">Portions and macros scale to the selected profile. Click ✏️ on any meal or snack to edit it. Use + to add new ones.</p>
+```
+</aside>
+<!-- ══ MAIN ══ -->
+<main class="main">
+```
+<div class="disclaimer"><strong>⚕️ Medical notice:</strong> Always consult a healthcare provider before starting a new diet or significant calorie deficit. Macros are calculated via Mifflin-St Jeor. Monitor energy, sleep, and strength levels.</div>
+<!-- Compare bar -->
+<div class="compare">
+<div class="cc ca">
+<div class="cc-name"><span class="dot-a"></span><span id="cc-n-a">Anna</span> <span class="tag tag-a">A</span></div>
+<div class="cc-macros" id="cc-m-a">
+<div class="cm"><div class="cm-val" style="color:var(--blue)">—</div><div class="cm-lbl">kcal</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--green)">—</div><div class="cm-lbl">protein</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--yellow)">—</div><div class="cm-lbl">carbs</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--orange)">—</div><div class="cm-lbl">fat</div></div>
+</div>
+</div>
+<div class="cc cb">
+<div class="cc-name"><span class="dot-b"></span><span id="cc-n-b">Ben</span> <span class="tag tag-b">B</span></div>
+<div class="cc-macros" id="cc-m-b">
+<div class="cm"><div class="cm-val" style="color:var(--blue)">—</div><div class="cm-lbl">kcal</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--green)">—</div><div class="cm-lbl">protein</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--yellow)">—</div><div class="cm-lbl">carbs</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--orange)">—</div><div class="cm-lbl">fat</div></div>
+</div>
+</div>
+</div>
+<!-- Day tabs -->
+<div class="day-tabs" id="day-tabs"></div>
+<!-- Day panels rendered by JS -->
+<div id="panels-container"></div>
+<!-- Grocery panel -->
+<div class="groc-panel" id="groc-panel">
+<div class="groc-note">🛒 Designed for ~50€/week. Shop dairy &amp; canned goods at <strong>Aldi / Lidl</strong>, fresh produce at <strong>Rewe</strong>. Tap to check off items.</div>
+<div class="groc-grid">
+<div class="groc-sec"><div class="groc-sec-title">🥦 Produce &amp; Herbs</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2 bags</span>fresh spinach (200g)</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">3</span>cucumbers</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">5</span>bell peppers (mixed)</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">500g</span>cherry tomatoes</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1</span>broccoli head</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">3</span>zucchini / courgettes</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 bunch</span>asparagus</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1</span>romaine lettuce + salad greens</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">4</span>carrots</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 bunch</span>celery</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2</span>onions + 1 red onion</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 head</span>garlic + fresh ginger</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2</span>lemons</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1</span>avocado</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1</span>fennel + 1 kohlrabi</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">100g</span>sugar snap peas</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2 packs</span>radishes</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Fresh dill, chives, mint, parsley</div></div>
+</div>
+<div class="groc-sec"><div class="groc-sec-title">🥛 Dairy &amp; Eggs</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2×500g</span>0% Greek yogurt</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2×400g</span>Skyr plain</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2×500g</span>0% cottage cheese</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">500g</span>0% Magerquark</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">18</span>eggs</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">150g</span>reduced-fat feta</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1L</span>unsweetened almond milk</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 tub</span>light cream cheese</div></div>
+</div>
+<div class="groc-sec"><div class="groc-sec-title">🐟 Fish &amp; Seafood</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">6 cans</span>tuna in water (160g)</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">150g</span>salmon fillet</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">180g</span>cod fillet</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">120g</span>smoked salmon</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">400g</span>frozen shrimp (peeled)</div></div>
+</div>
+<div class="groc-sec"><div class="groc-sec-title">🫘 Plant Protein &amp; Pantry</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2×200g</span>firm tofu</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">3 cans</span>chickpeas</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">2 cans</span>black beans</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">300g</span>red lentils (dry)</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">3 cans</span>crushed/diced tomatoes</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1L</span>vegetable broth</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 jar</span>hummus, 1 jar olives</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 loaf</span>wholegrain bread</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 jar</span>natural peanut butter</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">1 tub</span>whey protein powder</div></div>
+</div>
+<div class="groc-sec"><div class="groc-sec-title">🧊 Frozen</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">500g</span>frozen mixed berries</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">200g</span>frozen edamame</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt"><span class="gq">200g</span>frozen green beans</div></div>
+</div>
+<div class="groc-sec"><div class="groc-sec-title">🧂 Condiments &amp; Spices</div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Dijon mustard, soy sauce (low-sodium)</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Sesame oil, olive oil spray</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Chia seeds, flaxseeds, stevia</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Smoked paprika, cumin, turmeric, curry</div></div>
+<div class="gi" onclick="chk(this)"><div class="gck"></div><div class="gtxt">Chili flakes, garlic powder, cinnamon, vanilla</div></div>
+</div>
+</div>
+</div>
+```
+</main>
+</div>
+<!-- ══ MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay">
+<div class="modal">
+<div class="modal-hdr">
+<div class="modal-title" id="modal-title">Edit Meal</div>
+<button class="modal-close" onclick="closeModal()">✕</button>
+</div>
+<div class="modal-body">
+<input type="hidden" id="m-day">
+<input type="hidden" id="m-index">
+<input type="hidden" id="m-kind"> <!-- 'meal' or 'snack' -->
+```
+<!-- MEAL FIELDS -->
+<div id="meal-fields">
+<div class="mf mf-row">
+<div><label>Emoji</label><input id="m-emoji" type="text" placeholder="🥗" maxlength="4"></div>
+<div><label>Meal type</label><select id="m-type"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Other</option></select></div>
+</div>
+<div class="mf"><label>Meal name</label><input id="m-name" type="text" placeholder="e.g. Greek Yogurt Bowl"></div>
+<div class="mf mf-row4">
+<div><label>Kcal</label><input id="m-kcal" type="number" placeholder="350"></div>
+<div><label>Protein (g)</label><input id="m-prot" type="number" placeholder="30"></div>
+<div><label>Carbs (g)</label><input id="m-carb" type="number" placeholder="20"></div>
+<div><label>Fat (g)</label><input id="m-fat" type="number" placeholder="12"></div>
+</div>
+<div class="mf"><label>Prep time</label><input id="m-time" type="text" placeholder="15 min"></div>
+<div class="mf"><label>Ingredients (one per line)</label><textarea id="m-ingr" placeholder="250g Greek yogurt&#10;30g protein powder&#10;80g frozen berries"></textarea></div>
+<div class="mf"><label>Prep note (optional)</label><input id="m-note" type="text" placeholder="Mix yogurt and protein, top with berries."></div>
+</div>
+<!-- SNACK FIELDS -->
+<div id="snack-fields" style="display:none">
+<div class="mf"><label>Snack name</label><input id="s-name" type="text" placeholder="e.g. Carrots + Quark Dip"></div>
+<div class="mf"><label>Description / ingredients</label><textarea id="s-desc" placeholder="2 carrots, 3 tbsp quark, dill, lemon" style="min-height:60px"></textarea></div>
+<div class="mf mf-row">
+<div><label>Kcal</label><input id="s-kcal" type="number" placeholder="90"></div>
+<div><label>Protein (g)</label><input id="s-prot" type="number" placeholder="8"></div>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="modal-cancel" onclick="closeModal()">Cancel</button>
+<button class="modal-save" onclick="saveItem()">Save</button>
+</div>
+```
+</div>
+</div>
+<script>
+// ══════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+// Full plan data — all 7 days
+let plan = [
+ // DAY 0 - Monday
+ { meals: [
+   { emoji:'🥚', type:'Breakfast', name:'Greek Yogurt Power Bowl with Berries', kcal:320, protein:35, carbs:18, fat:8, time:'5 min', ingredients:['250g 0% fat Greek yogurt','30g vanilla whey protein powder','80g frozen mixed berries (thawed)','1 tsp chia seeds, stevia to taste'], note:'Mix yogurt and protein, top with berries and chia.' },
+   { emoji:'🥗', type:'Lunch', name:'Tuna Cucumber Lettuce Wraps', kcal:380, protein:52, carbs:8, fat:14, time:'10 min', ingredients:['160g canned tuna in water (drained)','4 large romaine lettuce leaves','½ cucumber diced','2 tbsp 0% quark, lemon, dill, pepper'], note:'Mix tuna with quark and cucumber, spoon into lettuce cups.' },
+   { emoji:'🍳', type:'Dinner', name:'Egg White Omelette with Feta & Spinach', kcal:280, protein:30, carbs:6, fat:13, time:'15 min', ingredients:['6 egg whites + 1 whole egg','50g reduced-fat feta','100g fresh spinach','½ red onion, spray oil, garlic powder, chili flakes'], note:'Sauté onion & spinach, pour egg whites, add feta. Fold and serve.' }
+ ], snacks: [
+   { name:'Carrots + Quark Herb Dip', desc:'2 carrots, 3 tbsp 0% quark, dill, garlic, lemon · P: 8g', kcal:90, protein:8 },
+   { name:'Celery + Peanut Butter Dip', desc:'4 celery sticks, 1 tsp natural PB thinned with water · P: 3g', kcal:80, protein:3 },
+   { name:'Bell Pepper + Cottage Cheese Dip', desc:'1 sliced pepper, 4 tbsp 0% cottage cheese, smoked paprika · P: 8g', kcal:70, protein:8 }
+ ]},
+ // DAY 1 - Tuesday
+ { meals: [
+   { emoji:'🥛', type:'Breakfast', name:'Protein Shake with Boiled Eggs', kcal:300, protein:40, carbs:12, fat:8, time:'5 min', ingredients:['30g whey protein in 300ml unsweetened almond milk','2 hard-boiled eggs (prep night before)','1 tsp flaxseed'], note:'Shake + eggs. Fastest breakfast possible.' },
+   { emoji:'🥘', type:'Lunch', name:'Red Lentil Soup with Smoked Paprika', kcal:360, protein:22, carbs:40, fat:5, time:'25 min', ingredients:['150g red lentils','1 carrot, 1 celery stalk, ½ onion','1 can diced tomatoes, 600ml vegetable broth','Smoked paprika, cumin, garlic, salt'], note:'Sauté veg, add lentils, broth, tomatoes. Simmer 20 min. Blend half.' },
+   { emoji:'🐟', type:'Dinner', name:'Pan-Seared Salmon with Asparagus', kcal:380, protein:40, carbs:6, fat:20, time:'20 min', ingredients:['150g salmon fillet','200g asparagus trimmed','1 tsp olive oil, lemon, garlic, dill, salt, pepper'], note:'Sear salmon 4 min/side. Roast asparagus at 200°C for 12 min.' }
+ ], snacks: [
+   { name:'Cucumber + Smoked Salmon Cream', desc:'½ cucumber, 2 tbsp quark + 30g smoked salmon blended · P: 10g', kcal:85, protein:10 },
+   { name:'Radishes + Dijon Yogurt Dip', desc:'1 bunch radishes, 3 tbsp yogurt, 1 tsp Dijon, chives · P: 5g', kcal:75, protein:5 },
+   { name:'Broccoli Florets + Hummus', desc:'100g raw broccoli, 2 tbsp hummus · P: 5g', kcal:80, protein:5 }
+ ]},
+ // DAY 2 - Wednesday
+ { meals: [
+   { emoji:'🧀', type:'Breakfast', name:'Cottage Cheese Pancakes', kcal:290, protein:32, carbs:15, fat:8, time:'15 min', ingredients:['200g 0% cottage cheese','3 eggs','2 tbsp rolled oats (blended)','Cinnamon, vanilla, stevia, spray oil'], note:'Blend all, cook small pancakes 2 min/side. Top with berries.' },
+   { emoji:'🥢', type:'Lunch', name:'Tofu Stir-Fry with Broccoli', kcal:350, protein:28, carbs:18, fat:16, time:'20 min', ingredients:['200g firm tofu (pressed & cubed)','200g broccoli florets','1 tbsp low-sodium soy sauce, 1 tsp sesame oil','Garlic, ginger, chili flakes, spring onion'], note:'Pan-fry tofu until golden, add broccoli and sauces, stir-fry 5 min.' },
+   { emoji:'🍅', type:'Dinner', name:'Shakshuka — Eggs in Tomato Sauce', kcal:320, protein:26, carbs:20, fat:14, time:'25 min', ingredients:['4 eggs','1 can crushed tomatoes','½ red pepper, ½ onion, 2 garlic cloves','1 tsp olive oil, cumin, smoked paprika, cayenne, parsley'], note:'Sauté veg, add tomatoes & spices, simmer 10 min, crack eggs, cover 8 min.' }
+ ], snacks: [
+   { name:'Endive Leaves + Tuna Dip', desc:'1 endive, ½ can tuna + lemon + quark · P: 14g', kcal:90, protein:14 },
+   { name:'Cherry Tomatoes + Feta Dip', desc:'10 cherry tomatoes, 2 tbsp feta + yogurt, oregano · P: 6g', kcal:70, protein:6 },
+   { name:'Zucchini Sticks + Tzatziki', desc:'1 zucchini in sticks, 3 tbsp yogurt, cucumber, garlic, mint · P: 5g', kcal:75, protein:5 }
+ ]},
+ // DAY 3 - Thursday
+ { meals: [
+   { emoji:'🥛', type:'Breakfast', name:'Skyr with Flaxseeds & Walnuts', kcal:310, protein:30, carbs:14, fat:12, time:'3 min', ingredients:['200g plain Skyr','1 tbsp flaxseeds, 15g walnuts','Cinnamon, stevia'], note:'Layer and eat. 3-minute breakfast.' },
+   { emoji:'🌿', type:'Lunch', name:'Chickpea & Spinach Curry', kcal:370, protein:18, carbs:42, fat:10, time:'20 min', ingredients:['1 can chickpeas (drained)','150g fresh spinach','½ can light coconut milk','1 can diced tomatoes','Curry powder, turmeric, cumin, garlic, ginger'], note:'Sauté spices 1 min, add tomatoes & coconut milk, simmer 10 min, add chickpeas & spinach.' },
+   { emoji:'🦐', type:'Dinner', name:'Garlic Shrimp with Zucchini Noodles', kcal:290, protein:35, carbs:8, fat:10, time:'15 min', ingredients:['200g frozen shrimp (thawed)','2 zucchinis spiralized','3 garlic cloves, chili flakes, lemon, parsley'], note:'Sauté garlic 1 min, add shrimp ~3 min, toss in zucchini noodles 2 min.' }
+ ], snacks: [
+   { name:'Fennel Sticks + Cottage Dip', desc:'½ fennel, 4 tbsp cottage cheese, lemon zest · P: 8g', kcal:80, protein:8 },
+   { name:'Cauliflower + Spicy Quark', desc:'100g cauliflower, 3 tbsp quark, sriracha, lime · P: 7g', kcal:85, protein:7 },
+   { name:'Cucumber Boats + Tuna', desc:'½ cucumber filled with ½ can tuna + mustard · P: 12g', kcal:75, protein:12 }
+ ]},
+ // DAY 4 - Friday
+ { meals: [
+   { emoji:'🥚', type:'Breakfast', name:'Veggie Scrambled Eggs + Quark Toast', kcal:330, protein:34, carbs:18, fat:12, time:'12 min', ingredients:['3 eggs + 2 egg whites','½ pepper, spinach, mushrooms','1 slice wholegrain bread','2 tbsp 0% quark + chives on toast'], note:'Scramble eggs with veggies, top toast with quark.' },
+   { emoji:'🥗', type:'Lunch', name:'Tuna Niçoise Salad (no potato)', kcal:360, protein:48, carbs:12, fat:14, time:'15 min', ingredients:['2 cans tuna in water','2 hard-boiled eggs','80g green beans (blanched)','Cherry tomatoes, olives, lettuce, Dijon vinaigrette'], note:'Arrange and drizzle dressing. No cooking beyond boiling eggs.' },
+   { emoji:'🫘', type:'Dinner', name:'Black Bean & Egg Burrito Bowl', kcal:310, protein:28, carbs:28, fat:10, time:'15 min', ingredients:['1 can black beans (drained)','2 eggs (fried or scrambled)','Romaine lettuce base','Salsa, lime, cumin, garlic powder, cilantro'], note:'Layer everything. Squeeze lime over the top.' }
+ ], snacks: [
+   { name:'Asparagus + Egg Dip', desc:'6 raw spears, 1 mashed boiled egg + Dijon + lemon · P: 7g', kcal:85, protein:7 },
+   { name:'Mixed Crudités + Herb Quark', desc:'Carrot, celery, pepper sticks, 3 tbsp quark + herbs · P: 6g', kcal:80, protein:6 },
+   { name:'Lettuce Cups + Salmon Cream', desc:'3 romaine leaves, 40g smoked salmon + 1 tbsp quark · P: 9g', kcal:70, protein:9 }
+ ]},
+ // DAY 5 - Saturday
+ { meals: [
+   { emoji:'🫐', type:'Breakfast', name:'High-Protein Chia Pudding', kcal:300, protein:36, carbs:20, fat:8, time:'5 min + overnight', ingredients:['3 tbsp chia seeds','200ml unsweetened almond milk','30g protein powder','80g frozen berries, stevia, vanilla'], note:'Mix Friday night. Refrigerate overnight. Top with berries.' },
+   { emoji:'🍜', type:'Lunch', name:'Egg Drop Soup with Tofu', kcal:280, protein:30, carbs:8, fat:12, time:'15 min', ingredients:['600ml vegetable broth','3 eggs (beaten)','100g soft tofu cubed','Spring onions, soy sauce, sesame oil, ginger'], note:'Bring broth to simmer, add tofu, slowly drizzle in beaten eggs while stirring.' },
+   { emoji:'🐟', type:'Dinner', name:'Baked Cod with Roasted Vegetables', kcal:330, protein:42, carbs:12, fat:10, time:'25 min', ingredients:['180g cod fillet','200g mixed veg (zucchini, cherry tomatoes, pepper)','1 tsp olive oil, lemon, garlic, herbes de Provence'], note:'Toss veg in oil, bake at 200°C for 15 min. Add cod, bake 12 more min.' }
+ ], snacks: [
+   { name:'Sugar Snap Peas + Feta Dip', desc:'100g snap peas, 2 tbsp feta + yogurt + mint · P: 7g', kcal:90, protein:7 },
+   { name:'Bell Pepper + Hummus', desc:'2 peppers sliced, 2 tbsp hummus · P: 4g', kcal:75, protein:4 },
+   { name:'Kohlrabi + Cottage Dip', desc:'½ kohlrabi sticks, 4 tbsp cottage cheese, caraway · P: 8g', kcal:80, protein:8 }
+ ]},
+ // DAY 6 - Sunday
+ { meals: [
+   { emoji:'🥞', type:'Breakfast', name:'Sunday Protein French Toast', kcal:340, protein:30, carbs:22, fat:12, time:'15 min', ingredients:['2 slices wholegrain bread','3 eggs + 2 egg whites','Cinnamon, vanilla, stevia, spray oil','Top: 100g 0% yogurt + berries'], note:'Dip bread in egg mix, pan-fry 2 min/side until golden.' },
+   { emoji:'🥗', type:'Lunch', name:'Big Green Protein Salad', kcal:350, protein:38, carbs:14, fat:14, time:'10 min', ingredients:['2 cans tuna or 150g shrimp','Large mixed greens base','½ avocado, cucumber, edamame','Sesame dressing: sesame oil, rice vinegar, soy sauce, ginger'], note:'Toss everything. Drizzle sesame dressing.' },
+   { emoji:'🍲', type:'Dinner', name:'Lentil & Veggie Bolognese', kcal:310, protein:22, carbs:36, fat:6, time:'30 min', ingredients:['1 can green/brown lentils','1 can crushed tomatoes','Celery, carrot, onion, garlic, Italian herbs, bay leaf','Serve over 100g zucchini noodles'], note:'Sauté veg, add lentils and tomatoes, simmer 25 min.' }
+ ], snacks: [
+   { name:'Carrots + Avocado Dip', desc:'2 carrots, ¼ mashed avocado + lemon + chili · P: 2g', kcal:85, protein:2 },
+   { name:'Celery + Cream Cheese Dip', desc:'4 sticks, 2 tbsp light cream cheese + chives · P: 3g', kcal:80, protein:3 },
+   { name:'Rainbow Crudités + Yogurt Dip', desc:'Carrot, pepper, cucumber + 3 tbsp Greek yogurt + za\'atar · P: 5g', kcal:75, protein:5 }
+ ]}
+];
+// ══════════════════════════════════════════
+// PROFILES & SCALE
+// ══════════════════════════════════════════
+const profiles = { a:{kcal:null,protein:null,carbs:null,fat:null,name:'Anna',weight:72.7}, b:{kcal:null,protein:null,carbs:null,fat:null,name:'Ben',weight:85} };
+let activeScale = 'a';
+let activeDay   = 0;
+function calcProfile(id) {
+ const age    = +document.getElementById(id+'-age').value;
+ const sex    = document.getElementById(id+'-sex').value;
+ const h      = +document.getElementById(id+'-height').value;
+ const w      = +document.getElementById(id+'-weight').value;
+ const act    = +document.getElementById(id+'-activity').value;
+ const goal   = document.getElementById(id+'-goal').value;
+ const pmult  = +document.getElementById(id+'-pmult').value;
+ const name   = document.getElementById(id+'-name').value || (id==='a'?'Person A':'Person B');
+ if (!age||!h||!w) return;
+ const bmr  = sex==='f' ? 10*w+6.25*h-5*age-161 : 10*w+6.25*h-5*age+5;
+ const tdee = Math.round(bmr*act);
+ const adj  = {cut:-780,mild:-300,maintain:0,bulk:200}[goal]||0;
+ const kcal = Math.max(1200, tdee+adj);
+ const prot = Math.round(w*pmult);
+ const fat  = Math.round(kcal*0.25/9);
+ const carb = Math.max(0, Math.round((kcal-prot*4-fat*9)/4));
+ profiles[id] = { kcal, protein:prot, carbs:carb, fat, name, weight:w, tdee };
+ const dot = id==='a'?'<span class="dot-a"></span>':'<span class="dot-b"></span>';
+ const el  = document.getElementById('res-'+id);
+ el.classList.add('on');
+ el.innerHTML = `<div class="rc-name">${dot}${name} <small style="font-size:.65rem;color:var(--dim)">TDEE ${tdee}</small></div>
+<div class="rc-grid">
+<div class="rc-chip"><div class="rc-val" style="color:var(--blue)">${kcal}</div><div class="rc-lbl">kcal</div></div>
+<div class="rc-chip"><div class="rc-val" style="color:var(--green)">${prot}g</div><div class="rc-lbl">protein</div></div>
+<div class="rc-chip"><div class="rc-val" style="color:var(--yellow)">${carb}g</div><div class="rc-lbl">carbs</div></div>
+<div class="rc-chip"><div class="rc-val" style="color:var(--orange)">${fat}g</div><div class="rc-lbl">fat</div></div>
+</div>`;
+ document.getElementById('cc-n-'+id).textContent = name;
+ document.getElementById('cc-m-'+id).innerHTML = `
+<div class="cm"><div class="cm-val" style="color:var(--blue)">${kcal}</div><div class="cm-lbl">kcal</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--green)">${prot}g</div><div class="cm-lbl">protein</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--yellow)">${carb}g</div><div class="cm-lbl">carbs</div></div>
+<div class="cm"><div class="cm-val" style="color:var(--orange)">${fat}g</div><div class="cm-lbl">fat</div></div>`;
+ if (activeScale===id||activeScale==='both') renderAll();
+}
+function getScale() {
+ const ref = 1220; // base kcal reference (Anna's plan)
+ if (activeScale==='a' && profiles.a.kcal) return profiles.a.kcal/ref;
+ if (activeScale==='b' && profiles.b.kcal) return profiles.b.kcal/ref;
+ if (activeScale==='both' && profiles.a.kcal && profiles.b.kcal) return ((profiles.a.kcal+profiles.b.kcal)/2)/ref;
+ return 1;
+}
+function setScale(mode) {
+ activeScale = mode;
+ ['a','b','both'].forEach(k => document.getElementById('sc-'+k).classList.toggle('on', k===mode));
+ renderAll();
+}
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderAll() {
+ renderTabs();
+ renderPanels();
+}
+function renderTabs() {
+ const tabs = document.getElementById('day-tabs');
+ tabs.innerHTML = DAYS.map((d,i)=>`<button class="dt${i===activeDay?' on':''}" onclick="switchDay(${i})">${d.slice(0,3)}</button>`).join('')
+   + `<button class="dt groc${activeDay===-1?' on':''}" onclick="switchDay(-1)">🛒 Grocery</button>`;
+}
+function renderPanels() {
+ const container = document.getElementById('panels-container');
+ container.innerHTML = DAYS.map((d,i) => renderDay(i)).join('');
+ document.getElementById('groc-panel').classList.toggle('on', activeDay===-1);
+}
+function renderDay(dayIdx) {
+ const d = plan[dayIdx];
+ const ratio = getScale();
+ const isActive = activeDay === dayIdx;
+ const mealsHTML = d.meals.map((m,mi) => renderMealCard(m, dayIdx, mi, ratio)).join('');
+ const snacksHTML = d.snacks.map((s,si) => renderSnackCard(s, dayIdx, si)).join('');
+ // Day totals
+ const mKcal = d.meals.reduce((a,m)=>a+m.kcal,0);
+ const mProt = d.meals.reduce((a,m)=>a+m.protein,0);
+ const mCarb = d.meals.reduce((a,m)=>a+m.carbs,0);
+ const mFat  = d.meals.reduce((a,m)=>a+m.fat,0);
+ const sKcal = d.snacks.reduce((a,s)=>a+s.kcal,0);
+ const sProt = d.snacks.reduce((a,s)=>a+s.protein,0);
+ const totKcal = Math.round((mKcal+sKcal)*ratio);
+ const totProt = Math.round((mProt+sProt)*ratio);
+ const totCarb = Math.round(mCarb*ratio);
+ const totFat  = Math.round(mFat*ratio);
+ const barsHTML = renderBarsHTML(totKcal, totProt, totCarb, totFat);
+ const scaleLabel = activeScale==='both'?'Both combined':profiles[activeScale]?.name||('Person '+activeScale.toUpperCase());
+ return `<div class="day-panel fade${isActive?' on':''}" id="panel-${dayIdx}">
+<div class="sub-hdr">
+<span class="sub-title">Meals — ${DAYS[dayIdx]}</span>
+<button class="add-btn" onclick="openAddMeal(${dayIdx})">
+<svg width="12" height="12" viewBox="0 0 12 12"><line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+       Add Meal
+</button>
+</div>
+<div class="meals-list">${mealsHTML||'<div class="empty">No meals yet. Click + Add Meal to start.</div>'}</div>
+<div class="sub-hdr">
+<span class="sub-title">Snacks 🥕</span>
+<button class="add-btn" onclick="openAddSnack(${dayIdx})">
+<svg width="12" height="12" viewBox="0 0 12 12"><line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+       Add Snack
+</button>
+</div>
+<div class="snacks-grid">${snacksHTML||'<div class="empty" style="grid-column:1/-1">No snacks yet.</div>'}</div>
+<div class="totals-card">
+<div class="tc-hdr">Day Total — scaled for ${scaleLabel}</div>
+<div class="tc-row">
+<div class="tci"><div class="tci-val" style="color:var(--blue)">${totKcal.toLocaleString()}</div><div class="tci-lbl">kcal</div></div>
+<div class="tci"><div class="tci-val" style="color:var(--green)">${totProt}g</div><div class="tci-lbl">protein</div></div>
+<div class="tci"><div class="tci-val" style="color:var(--yellow)">${totCarb}g</div><div class="tci-lbl">carbs</div></div>
+<div class="tci"><div class="tci-val" style="color:var(--orange)">${totFat}g</div><div class="tci-lbl">fat</div></div>
+</div>
+     ${barsHTML}
+</div>
+</div>`;
+}
+function renderMealCard(m, dayIdx, mi, ratio) {
+ const sKcal = Math.round(m.kcal*ratio);
+ const sP    = Math.round(m.protein*ratio);
+ const sC    = Math.round(m.carbs*ratio);
+ const sF    = Math.round(m.fat*ratio);
+ const panelId = `ingr-${dayIdx}-${mi}`;
+ const ingrHTML = m.ingredients.map(i=>`<li>${i}</li>`).join('');
+ const noteHTML = m.note ? `<p class="note">${m.note}</p>` : '';
+ return `<div class="meal-card">
+<div class="mc-top">
+<div class="mc-emoji">${m.emoji||'🍽️'}</div>
+<div class="mc-info">
+<div class="mc-type">${m.type}</div>
+<div class="mc-name">${m.name}</div>
+</div>
+<div class="mc-right">
+<div class="mc-kcal">${sKcal} kcal</div>
+<div class="mc-time">⏱ ${m.time||'—'}</div>
+<div class="mc-actions">
+<button class="icon-btn" onclick="openEditMeal(${dayIdx},${mi})" title="Edit">✏️</button>
+<button class="icon-btn del" onclick="deleteItem('meal',${dayIdx},${mi})" title="Delete">🗑</button>
+</div>
+</div>
+</div>
+<div class="mc-macros">
+<span class="mm p">P: <strong>${sP}g</strong></span>
+<span class="mm c">C: <strong>${sC}g</strong></span>
+<span class="mm f">F: <strong>${sF}g</strong></span>
+</div>
+<button class="expand-btn" onclick="togglePanel('${panelId}',this)">Ingredients &amp; prep <span class="arr">▾</span></button>
+<div class="ingr-panel" id="${panelId}">
+<ul>${ingrHTML}</ul>${noteHTML}
+</div>
+</div>`;
+}
+function renderSnackCard(s, dayIdx, si) {
+ return `<div class="snack-card">
+<div class="snack-top">
+<div class="snack-num">Snack ${si+1}</div>
+<div class="snack-actions">
+<button class="icon-btn" onclick="openEditSnack(${dayIdx},${si})" title="Edit">✏️</button>
+<button class="icon-btn del" onclick="deleteItem('snack',${dayIdx},${si})" title="Delete">🗑</button>
+</div>
+</div>
+<div class="snack-name">${s.name}</div>
+<div class="snack-desc">${s.desc||''}</div>
+<div class="snack-kcal">${s.kcal} kcal · P: ${s.protein}g</div>
+</div>`;
+}
+function renderBarsHTML(kcal, p, c, f) {
+ const profile = activeScale==='both' ? null : profiles[activeScale];
+ if (!profile||!profile.kcal) return '';
+ const items = [
+   {label:'Calories',val:kcal,target:profile.kcal,color:'var(--blue)'},
+   {label:'Protein', val:p,   target:profile.protein,color:'var(--green)'},
+   {label:'Carbs',   val:c,   target:profile.carbs,color:'var(--yellow)'},
+   {label:'Fat',     val:f,   target:profile.fat,color:'var(--orange)'},
+ ];
+ return items.map(b=>{
+   const pct=Math.min(110,Math.round((b.val/b.target)*100));
+   const over=pct>100;
+   return `<div class="cb-row">
+<div class="cb-lbl">${b.label}</div>
+<div class="cb-track"><div class="cb-fill" style="width:${Math.min(100,pct)}%;background:${over?'#ff5555':b.color}"></div></div>
+<div class="cb-pct" style="${over?'color:#ff5555':''}">${pct}%</div>
+</div>`;
+ }).join('');
+}
+// ══════════════════════════════════════════
+// MODAL — OPEN / SAVE / DELETE
+// ══════════════════════════════════════════
+let modalMode = null; // 'add-meal','edit-meal','add-snack','edit-snack'
+function openAddMeal(dayIdx) {
+ modalMode = 'add-meal';
+ document.getElementById('modal-title').textContent = 'Add Meal';
+ document.getElementById('m-day').value   = dayIdx;
+ document.getElementById('m-index').value = -1;
+ document.getElementById('m-kind').value  = 'meal';
+ clearMealFields();
+ showMealFields(true);
+ document.getElementById('modal-overlay').classList.add('open');
+}
+function openEditMeal(dayIdx, mi) {
+ modalMode = 'edit-meal';
+ const m = plan[dayIdx].meals[mi];
+ document.getElementById('modal-title').textContent = 'Edit Meal';
+ document.getElementById('m-day').value   = dayIdx;
+ document.getElementById('m-index').value = mi;
+ document.getElementById('m-kind').value  = 'meal';
+ document.getElementById('m-emoji').value = m.emoji||'';
+ document.getElementById('m-type').value  = m.type||'Breakfast';
+ document.getElementById('m-name').value  = m.name||'';
+ document.getElementById('m-kcal').value  = m.kcal||'';
+ document.getElementById('m-prot').value  = m.protein||'';
+ document.getElementById('m-carb').value  = m.carbs||'';
+ document.getElementById('m-fat').value   = m.fat||'';
+ document.getElementById('m-time').value  = m.time||'';
+ document.getElementById('m-ingr').value  = (m.ingredients||[]).join('\n');
+ document.getElementById('m-note').value  = m.note||'';
+ showMealFields(true);
+ document.getElementById('modal-overlay').classList.add('open');
+}
+function openAddSnack(dayIdx) {
+ modalMode = 'add-snack';
+ document.getElementById('modal-title').textContent = 'Add Snack';
+ document.getElementById('m-day').value   = dayIdx;
+ document.getElementById('m-index').value = -1;
+ document.getElementById('m-kind').value  = 'snack';
+ clearSnackFields();
+ showMealFields(false);
+ document.getElementById('modal-overlay').classList.add('open');
+}
+function openEditSnack(dayIdx, si) {
+ modalMode = 'edit-snack';
+ const s = plan[dayIdx].snacks[si];
+ document.getElementById('modal-title').textContent = 'Edit Snack';
+ document.getElementById('m-day').value   = dayIdx;
+ document.getElementById('m-index').value = si;
+ document.getElementById('m-kind').value  = 'snack';
+ document.getElementById('s-name').value  = s.name||'';
+ document.getElementById('s-desc').value  = s.desc||'';
+ document.getElementById('s-kcal').value  = s.kcal||'';
+ document.getElementById('s-prot').value  = s.protein||'';
+ showMealFields(false);
+ document.getElementById('modal-overlay').classList.add('open');
+}
+function showMealFields(isMeal) {
+ document.getElementById('meal-fields').style.display  = isMeal ? 'block' : 'none';
+ document.getElementById('snack-fields').style.display = isMeal ? 'none'  : 'block';
+}
+function clearMealFields() {
+ ['m-emoji','m-name','m-kcal','m-prot','m-carb','m-fat','m-time','m-ingr','m-note'].forEach(id => document.getElementById(id).value='');
+ document.getElementById('m-type').value='Breakfast';
+ document.getElementById('m-emoji').value='🍽️';
+}
+function clearSnackFields() {
+ ['s-name','s-desc','s-kcal','s-prot'].forEach(id => document.getElementById(id).value='');
+}
+function saveItem() {
+ const dayIdx = +document.getElementById('m-day').value;
+ const mi     = +document.getElementById('m-index').value;
+ const kind   = document.getElementById('m-kind').value;
+ if (kind==='meal') {
+   const item = {
+     emoji:    document.getElementById('m-emoji').value.trim()||'🍽️',
+     type:     document.getElementById('m-type').value,
+     name:     document.getElementById('m-name').value.trim()||'Unnamed meal',
+     kcal:     +document.getElementById('m-kcal').value||0,
+     protein:  +document.getElementById('m-prot').value||0,
+     carbs:    +document.getElementById('m-carb').value||0,
+     fat:      +document.getElementById('m-fat').value||0,
+     time:     document.getElementById('m-time').value.trim(),
+     ingredients: document.getElementById('m-ingr').value.split('\n').map(l=>l.trim()).filter(Boolean),
+     note:     document.getElementById('m-note').value.trim()
+   };
+   if (mi===-1) plan[dayIdx].meals.push(item);
+   else         plan[dayIdx].meals[mi] = item;
+ } else {
+   const item = {
+     name:    document.getElementById('s-name').value.trim()||'Unnamed snack',
+     desc:    document.getElementById('s-desc').value.trim(),
+     kcal:    +document.getElementById('s-kcal').value||0,
+     protein: +document.getElementById('s-prot').value||0,
+   };
+   if (mi===-1) plan[dayIdx].snacks.push(item);
+   else         plan[dayIdx].snacks[mi] = item;
+ }
+ closeModal();
+ renderAll();
+}
+function deleteItem(kind, dayIdx, idx) {
+ if (!confirm('Delete this '+(kind==='meal'?'meal':'snack')+'?')) return;
+ if (kind==='meal') plan[dayIdx].meals.splice(idx,1);
+ else               plan[dayIdx].snacks.splice(idx,1);
+ renderAll();
+}
+function closeModal() {
+ document.getElementById('modal-overlay').classList.remove('open');
+}
+document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+// ══════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════
+function switchDay(idx) {
+ activeDay = idx;
+ renderAll();
+ if (idx>=0) document.getElementById('groc-panel').classList.remove('on');
+}
+function switchProfile(id) {
+ document.getElementById('form-a').style.display = id==='a'?'block':'none';
+ document.getElementById('form-b').style.display = id==='b'?'block':'none';
+ document.querySelectorAll('.ptab').forEach((t,i)=>{
+   t.classList.remove('a-on','b-on');
+   if((i===0&&id==='a')||(i===1&&id==='b')) t.classList.add(id+'-on');
+ });
+}
+function togglePanel(id, btn) {
+ btn.classList.toggle('open');
+ document.getElementById(id).classList.toggle('open');
+}
+function chk(el) {
+ el.classList.toggle('done');
+ el.querySelector('.gck').textContent = el.classList.contains('done')? '✓' : '';
+}
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('load', () => {
+ renderAll();
+ calcProfile('a');
+});
+</script>
+</body>
+</html>
